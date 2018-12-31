@@ -1,6 +1,85 @@
-@import "normalize"
-@import "var"
+@import 'normalize'
+@import 'var'
 
+.ico
+	width: 35px
+	height: 35px
+	background: #fff
+	border-radius: 50%
+	margin: 0
+	padding: 0
+	display: flex
+	justify-content: center
+	align-items: center
+	.fa-twitter,
+	.fa-facebook-f,
+	.fa-instagram,
+	.fa-github,
+	.fa-linkedin-in
+		transition: all .7 ease
+		font-size: 1rem
+	&:hover
+		background: rgba(111, 55, 125, 0.8)
+		.fa-twitter,
+		.fa-facebook-f,
+		.fa-instagram,
+		.fa-github,
+		.fa-linkedin-in
+			color: #fff
+
+html,
+body
+	background: #f3f3f3
+	height: 100%
+	.sait
+		display: flex
+		flex-direction:	column
+		border: 1px solid #000
+		width: 100%
+		height: 100%
+		max-width: 1366px
+		min-width: 320px
+		margin: 0 auto  		
+		.header
+			border: 1px solid #000
+			height: 20vh
+			.top-line
+				padding: $pad
+				display: flex
+				justify-content: space-between
+				border: 1px dotted #000
+		.main
+			flex: 1 0 auto
+			height: 20vh
+			border: 1px solid #000
+		.footer
+			flex: 0 0 auto
+			padding: 1vh $pad 1vh $pad
+			width: 100%
+			.footer-text
+				padding: 0
+				display: flex
+				flex-direction: column
+				.footer-row_one
+					display: flex
+					margin-bottom: 1vh
+					.ico
+						margin-right: 1.5vw
+						transition: all .5s ease
+				.footer-row_two
+					display: flex
+					opacity: .2
+					a
+						text-decoration: none
+						color: #fff
+						border-bottom: 0.5px dotted #fff
+					p
+						font-size: 10px
+						line-height: 0.5
+						padding: 3px 7px 3px 0
+						border-right: 1px solid #fff
+						margin-right: 1.4vw
+						&:last-child
+							border-right: none
 @import "media"
-
 
