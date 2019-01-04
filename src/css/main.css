@@ -302,6 +302,33 @@ template {
 [hidden] {
   display: none; }
 
+* {
+  -moz-box-sizing: border-box;
+       box-sizing: border-box; }
+
+.btn {
+  display: inline-block;
+  background: transparent;
+  color: #000;
+  font-weight: 700;
+  text-decoration: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  padding: 1vh 2vw;
+  outline: none;
+  border: 2px solid #000;
+  border-radius: 1px;
+  -webkit-transition: 0.2s;
+  -moz-transition: 0.2s;
+  transition: 0.2s;
+  text-transform: uppercase; }
+  .btn:hover {
+    background: rgba(255, 255, 255, 0.2); }
+  .btn:active {
+    background: white; }
+
 .ico {
   width: 35px;
   height: 35px;
@@ -369,7 +396,8 @@ body {
     html .sait .header,
     body .sait .header {
       border: 1px solid #000;
-      height: 20vh; }
+      height: 20vh;
+      background: url(../img/header.jpg) no-repeat center/cover; }
       html .sait .header .top-line,
       body .sait .header .top-line {
         padding: 20px;
@@ -384,6 +412,15 @@ body {
             -ms-flex-pack: justify;
                 justify-content: space-between;
         border: 1px dotted #000; }
+        html .sait .header .top-line .logo,
+        body .sait .header .top-line .logo {
+          padding: 0; }
+          html .sait .header .top-line .logo img,
+          body .sait .header .top-line .logo img {
+            width: 80%; }
+        html .sait .header .top-line .user,
+        body .sait .header .top-line .user {
+          padding: 0; }
     html .sait .main,
     body .sait .main {
       -webkit-box-flex: 1;
@@ -391,8 +428,100 @@ body {
          -moz-box-flex: 1;
           -ms-flex: 1 0 auto;
               flex: 1 0 auto;
-      height: 20vh;
-      border: 1px solid #000; }
+      border: 1px solid #000;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-pack: justify;
+      -webkit-justify-content: space-between;
+         -moz-box-pack: justify;
+          -ms-flex-pack: justify;
+              justify-content: space-between;
+      -webkit-flex-wrap: wrap;
+          -ms-flex-wrap: wrap;
+              flex-wrap: wrap; }
+      html .sait .main .game,
+      body .sait .main .game {
+        margin: 20px;
+        padding: 20px;
+        width: 20vw;
+        height: 30vh;
+        position: relative;
+        -webkit-perspective: 1000px;
+           -moz-perspective: 1000px;
+                perspective: 1000px; }
+        html .sait .main .game .front, html .sait .main .game .back,
+        body .sait .main .game .front,
+        body .sait .main .game .back {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          left: 0;
+          top: 0;
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: -moz-box;
+          display: -ms-flexbox;
+          display: flex;
+          -webkit-box-orient: vertical;
+          -webkit-box-direction: normal;
+          -webkit-flex-direction: column;
+             -moz-box-orient: vertical;
+             -moz-box-direction: normal;
+              -ms-flex-direction: column;
+                  flex-direction: column;
+          -webkit-box-pack: center;
+          -webkit-justify-content: center;
+             -moz-box-pack: center;
+              -ms-flex-pack: center;
+                  justify-content: center;
+          -webkit-box-align: center;
+          -webkit-align-items: center;
+             -moz-box-align: center;
+              -ms-flex-align: center;
+                  align-items: center;
+          -webkit-transition: 1s;
+          -moz-transition: 1s;
+          transition: 1s;
+          -webkit-backface-visibility: hidden;
+             -moz-backface-visibility: hidden;
+                  backface-visibility: hidden;
+          border-radius: 10px;
+          padding: 20px 0;
+          text-align: justify; }
+          html .sait .main .game .front h3, html .sait .main .game .front p, html .sait .main .game .back h3, html .sait .main .game .back p,
+          body .sait .main .game .front h3,
+          body .sait .main .game .front p,
+          body .sait .main .game .back h3,
+          body .sait .main .game .back p {
+            padding: 5px;
+            margin: 0; }
+          html .sait .main .game .front video, html .sait .main .game .back video,
+          body .sait .main .game .front video,
+          body .sait .main .game .back video {
+            margin-bottom: 5px;
+            display: none; }
+        html .sait .main .game .front,
+        body .sait .main .game .front {
+          background-color: #fff; }
+        html .sait .main .game .back,
+        body .sait .main .game .back {
+          background-color: #BDBDBD;
+          -webkit-transform: rotateY(180deg);
+             -moz-transform: rotateY(180deg);
+                  transform: rotateY(180deg); }
+        html .sait .main .game:hover .front,
+        body .sait .main .game:hover .front {
+          -webkit-transform: rotateY(180deg);
+             -moz-transform: rotateY(180deg);
+                  transform: rotateY(180deg); }
+        html .sait .main .game:hover .back,
+        body .sait .main .game:hover .back {
+          -webkit-transform: rotateY(360deg);
+             -moz-transform: rotateY(360deg);
+                  transform: rotateY(360deg); }
     html .sait .footer,
     body .sait .footer {
       -webkit-box-flex: 0;
@@ -454,3 +583,24 @@ body {
             html .sait .footer .footer-text .footer-row_two p:last-child,
             body .sait .footer .footer-text .footer-row_two p:last-child {
               border-right: none; }
+
+.spaceship-game_field {
+  width: 100%;
+  height: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+     -moz-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+     -moz-box-align: center;
+      -ms-flex-align: center;
+          align-items: center; }
+  .spaceship-game_field .spaceship {
+    border: 1px solid; }

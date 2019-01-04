@@ -1,6 +1,27 @@
 @import 'normalize'
 @import 'var'
 
+*
+	box-sizing: border-box
+
+.btn
+	display: inline-block
+	background: transparent
+	color: #000
+	font-weight: 700
+	text-decoration: none
+	user-select: none
+	padding: 1vh 2vw
+	outline: none
+	border: 2px solid #000
+	border-radius: 1px
+	transition: 0.2s
+	text-transform: uppercase
+	&:hover  
+		background: rgba(255,255,255,.2)
+	&:active 
+		background: white
+		
 .ico
 	width: 35px
 	height: 35px
@@ -43,15 +64,61 @@ body
 		.header
 			border: 1px solid #000
 			height: 20vh
+			background: url(../img/header.jpg) no-repeat center /cover
 			.top-line
 				padding: $pad
 				display: flex
 				justify-content: space-between
 				border: 1px dotted #000
+				.logo
+					padding: 0
+					img
+						width: 80%
+				.user
+					padding: 0
 		.main
 			flex: 1 0 auto
-			height: 20vh
 			border: 1px solid #000
+			display: flex
+			justify-content: space-between
+			flex-wrap: wrap					
+			.game
+				margin: $pad
+				padding: $pad
+				width: 20vw
+				height: 30vh
+				position: relative
+				perspective: 1000px
+				.front, .back 
+					position: absolute
+					width: 100%
+					height: 100%
+					left: 0
+					top: 0
+					display: flex
+					flex-direction: column
+					justify-content: center
+					align-items: center
+					transition: 1s
+					backface-visibility: hidden
+					border-radius: 10px
+					padding: $pad 0
+					text-align: justify
+					h3, p
+						padding: 5px
+						margin: 0
+					video
+						margin-bottom: 5px
+						display: none
+				.front 
+					background-color: #fff
+				.back 
+					background-color: #BDBDBD
+					transform: rotateY(180deg)
+				&:hover .front 
+					transform: rotateY(180deg)
+				&:hover .back 
+					transform: rotateY(360deg)
 		.footer
 			flex: 0 0 auto
 			padding: 1vh $pad 1vh $pad
@@ -81,5 +148,6 @@ body
 						margin-right: 1.4vw
 						&:last-child
 							border-right: none
+@import 'spaceship'
 @import "media"
 

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "gulpfile.js",
-  "dependencies": {},
+  "dependencies": {
+    "jpegtran-bin": "^4.0.0"
+  },
   "devDependencies": {
     "browser-sync": "^2.26.3",
     "del": "^3.0.0",
@@ -13,6 +15,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-imagemin": "^5.0.3",
     "gulp-sass": "^4.0.2",
+    "gulp-terser": "^1.1.6",
     "gulp-uglify": "^3.0.1",
     "node-normalize-scss": "^8.0.0",
     "node-sass": "^4.11.0"

@@ -5,7 +5,7 @@ const gulp          = require('gulp'),
       del           = require('del'),
       browserSync   = require('browser-sync').create(),
       sass          = require('gulp-sass'),
-      uglify        = require('gulp-uglify'),
+      terser        = require('gulp-terser');
       imagemin      = require('gulp-imagemin');
 
 
@@ -25,15 +25,14 @@ function styleSass(){
 
 function scripts(){
     return gulp.src('./src/js/**/*.js')
-        .pipe(concat('min.js'))
-        .pipe(uglify())
+        .pipe(terser ())
         .pipe(gulp.dest('./build/js'))
 }
 
 function reimg(){
-    return gulp.src('./src/img/**/*')
+    return gulp.src('./src/img/*')
         .pipe(imagemin())
-        .pipe(gulp.dest('./build/img'));
+        .pipe(gulp.dest('./build/img/'));
 }
 
 function style(){
@@ -45,7 +44,7 @@ function style(){
 function watch(){
     browserSync.init({
         server: {
-            baseDir: "src"
+            baseDir: "./src"
         }
     });
     gulp.watch('src/sass/**/*.sass', styleSass);
@@ -70,5 +69,5 @@ gulp.task('htmlBuild', htmlBuild);
 gulp.task('reimg', reimg);
 
 gulp.task('build', gulp.series(clean,
-    gulp.parallel(style, scripts, reimg, htmlBuild)
+    scripts, gulp.parallel(style, reimg, htmlBuild)
 ));
