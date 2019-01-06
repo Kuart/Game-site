@@ -371,7 +371,7 @@ template {
 
 html,
 body {
-  background: #f3f3f3;
+  background: url(../img/page.png) repeat center;
   height: 100%; }
   html .sait,
   body .sait {
@@ -603,4 +603,4 @@ body {
       -ms-flex-align: center;
           align-items: center; }
   .spaceship-game_field .spaceship {
-    border: 1px solid; }
+    box-shadow: 0 0 20px #000; }
