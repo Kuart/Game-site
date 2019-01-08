@@ -1,12 +1,30 @@
 let game = {
+	ctx: null,
 	width:	600,
 	height: 800,
-	ctx: null,
-	background: null,
-	ship: null,
-	shot: null,
+	isStarted: false, 
+	isGameOver: false,
+	isExploded: false, 
+	status: false, //движение коробля
+	localSwitch: false, //движение инфо.
+	round: null,
+	rounds: [
+		{name: 'Round 1', types: [2, 2, 0, 3, 0], isComplete: false},
+		{name: 'Round 2', types: [2, 3, 1, 4, 0], isComplete: false},
+		{name: 'Round 3', types: [3, 2, 2, 3, 1], isComplete: false},
+		{name: 'Round 4', types: [2, 2, 2, 4, 2], isComplete: false},
+		{name: 'Round 5', types: [3, 3, 2, 4, 3], isComplete: false}],
+	count: 0,
+	score: 0,
+	streak: {x2: 2, x3: 3, x5: 5, x10: 10},
+	streakCounter: 0,
+	enemiesSpeed: 0.005,
+	target: '',
+	index: null,
+	oldIndex: null,
 	shotArr: [],
-	status: false,
+	words: [],
+	explosions: [],
 	sprites: {
 		background: null,
 		ship: null,
@@ -16,19 +34,19 @@ let game = {
 		enemiesType3: null,
 		enemiesType4: null,
 		enemiesType5: null,
-		boom: null
+		boom: null,
+		button: null,
+		score: null,
+		streak: null,
 	},
 	enemies: null,
-	target: '',
-	index: null,
-	oldIndex: null,
-	words: [],
-	count: 0,
-	score: 0,
-	streak: {x2: 2, x3: 3, x5: 5, x10: 10},
-	streakCounter: 0,
-	round: null,
-	rounds: [{name: 'Round 1', types: [2, 2, 0, 3, 0], isComplete: false}],
+	background: null,
+	ship: null,
+	shot: null,
+	button: null,
+	scoreView: null,
+	streakView: null,
+	gameOverText: null,
 
 	init: function(){
 		let canvas = document.querySelector(`.spaceship`);
@@ -40,10 +58,11 @@ let game = {
 			this.sprites[i] = new Image();
 			this.sprites[i].src = `../img/${i}.png`;
 		}
-		this.createWords(this.rounds)
+		this.mouseEventListener()
+		this.shoting();
+		this.createWords(this.rounds);
 		this.createEnemies(this.words);
 		console.log(this.words);
-		this.shoting();
 	},
 
 	starting: function(){
@@ -54,62 +73,113 @@ let game = {
 
 	update: function(){
 		//бэкграунд
-		this.background.dy -= this.background.speed
+		this.background.dy -= this.background.speed;
 		if(this.background.dy < this.background.height){
 			this.background.dy -= this.background.height;
 		}
 
-		//корабль
-		if(!this.status){
-			this.ship.x -= this.ship.speed;
-			if( this.ship.x < 210){
-				this.status = true
+		if(!this.isGameOver){	//корабль
+			if(!this.status){
+				this.ship.x -= this.ship.speed;
+				if( this.ship.x < 210){
+					this.status = true;
+				}
+			}else if(this.status){
+				this.ship.x += this.ship.speed;
+				if( this.ship.x > 230){
+					this.status = false;
+				}
 			}
-		}else if(this.status){
-			this.ship.x += this.ship.speed;
-			if( this.ship.x > 230){
-				this.status = false
+			if(this.isStarted){
+				//выстрелы
+				for (let i in this.shotArr){
+					let temp = Math.round(this.enemies[this.index].x - (this.enemies[this.index].sizeX/2)) || Math.round(this.enemies[this.oldIndex].x - (this.enemies[this.oldIndex].sizeX/2));
+					if(this.enemies.length){
+						if( temp < this.ship.x){
+							if(temp != this.ship.x){
+								this.shotArr[i].dx += 0.0001;
+								this.shotArr[i].x -= this.shotArr[i].dx;
+							}
+						}else if(temp > this.ship.x){
+							if(temp != this.ship.x){
+								this.shotArr[i].dx += 0.00001;
+								this.shotArr[i].x += this.shotArr[i].dx;
+							}
+						}
+						this.shotArr[i].dy += 1;
+						this.shotArr[i].y -= this.shotArr[i].dy;
+						if (this.shotArr[i].y <= this.enemies[this.index].y){
+							this.shotArr.splice(i,1);
+						}
+					}
+				}
+				//враги
+				for (let i in this.enemies){
+					if( this.enemies[i].x < this.ship.x-20 ){
+						if(Math.floor(this.enemies[i].x) != this.ship.x-20 ){
+							this.enemies[i].dx += 0.0001;
+							this.enemies[i].x += this.enemies[i].dx;
+							
+						}	
+					}else if(Math.floor(this.enemies[i].x) > this.ship.x){
+						if(Math.floor(this.enemies[i].x) != this.ship.x){
+							this.enemies[i].dx += 0.0001;
+							this.enemies[i].x -= this.enemies[i].dx;
+						}
+					}
+					this.enemies[i].dy += this.enemies[i].speed;
+					this.enemies[i].y += this.enemies[i].dy;
+				}
+			}
+			//взрывы
+			for( let i in this.explosions){
+				this.explosions[i].step++
+				if(this.explosions[i].step > 3){
+					this.explosions[i].step = 0
+					if(this.explosions[i].stepX != 390){
+						this.explosions[i].stepX += 130
+					}else if(this.explosions[i].stepX === 130 && this.explosions[i].stepY === 390){
+						this.explosions.splice(i,1)
+					}else{
+						this.explosions[i].stepY += 130
+						this.explosions[i].stepX = 0
+					}
+				}
 			}
 		}
-		
-		//выстрелы
-		for (let i in this.shotArr){
-			let temp = Math.round(this.enemies[this.index].x - (this.enemies[this.index].sizeX/2)) || Math.round(this.enemies[this.oldIndex].x - (this.enemies[this.oldIndex].sizeX/2));
-			if(this.enemies.length){
-				if( temp < this.ship.x){
-					if(temp != this.ship.x){
-						this.shotArr[i].dx += 0.0001
-						this.shotArr[i].x -= this.shotArr[i].dx
-					}
-				}else if(temp > this.ship.x){
-					if(temp != this.ship.x){
-						this.shotArr[i].dx += 0.00001
-						this.shotArr[i].x += this.shotArr[i].dx
-					}
+		if(this.isGameOver && this.isStarted){
+			this.ctx.font = '20px Orbitron';
+			this.ctx.fillStyle = "#fff";
+			if(this.gameOverText.x < 250 && !this.localSwitch){
+				this.gameOverText.dx += this.gameOverText.speed;
+				this.gameOverText.x += this.gameOverText.dx;
+				if(this.gameOverText.x >= 249){
+					this.localSwitch = true;
 				}
-				this.shotArr[i].dy += 1
-				this.shotArr[i].y -= this.shotArr[i].dy 
-				if (this.shotArr[i].y <= this.enemies[this.index].y){
-					this.shotArr.splice(i,1)
+			}else if(this.gameOverText.x > -250 && this.localSwitch){
+				this.gameOverText.dx = 0;
+				this.gameOverText.dx += this.gameOverText.speed*4;
+				this.gameOverText.x -= this.gameOverText.dx;
+				if( this.gameOverText.x <= 150){
+					this.isStarted = false;
+					this.isGameOver = false;
 				}
 			}
-		}
-		//враги
-		for (let i in this.enemies){
-			if( this.enemies[i].x < this.ship.x-20 ){
-				if(Math.floor(this.enemies[i].x) != this.ship.x-20 ){
-					this.enemies[i].dx += 0.0001
-					this.enemies[i].x += this.enemies[i].dx
-					
-				}	
-			}else if(Math.floor(this.enemies[i].x) > this.ship.x ){
-				if(Math.floor(this.enemies[i].x) != this.ship.x){
-					this.enemies[i].dx += 0.0001
-					this.enemies[i].x -= this.enemies[i].dx
+
+			for( let i in this.explosions){
+				this.explosions[i].step++
+				if(this.explosions[i].step > 4){
+					this.explosions[i].step = 0
+					if(this.explosions[i].stepX != 390){
+						this.explosions[i].stepX += 130
+					}else if(this.explosions[i].stepX === 130 && this.explosions[i].stepY === 390){
+						this.explosions.splice(i,1)
+					}else{
+						this.explosions[i].stepY += 130
+						this.explosions[i].stepX = 0
+					}
 				}
 			}
-			this.enemies[i].dy += this.enemies[i].speed
-			this.enemies[i].y += this.enemies[i].dy
 		}
 	},
 
@@ -118,27 +188,77 @@ let game = {
 		//фон
 		this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y + this.background.dy, 600, 1920, 0, 0 , 600, 1920 );
 		if(this.background.dy < (this.background.height + 1920)){
-			this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y, 600, 1900, 0, this.background.height - this.background.dy, 600, 1920, );
+			this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y, 600, 1900, 0, this.background.height - this.background.dy, 600, 1920);
 		}
-		//корбаль
-		this.ctx.drawImage(this.sprites.ship, this.ship.x, this.ship.y, 40, 60);
-		//высрелы
-		for (let i in this.shotArr){
-			this.ctx.drawImage(this.sprites.shot, this.shotArr[i].x, this.shotArr[i].y, 60, 100);
-		}
-		//враги
-		for( let i in this.enemies){
-			this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
+		if(!this.isGameOver){
+			//корбаль
+			this.ctx.drawImage(this.sprites.ship, this.ship.x, this.ship.y, 40, 60);
+			if(this.isStarted){
+				//высрелы
+				for (let i in this.shotArr){
+					this.ctx.drawImage(this.sprites.shot, this.shotArr[i].x, this.shotArr[i].y, 60, 100);
+				}
+				//враги
+				for( let i in this.enemies){
+					this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
+					this.ctx.font = '20px Orbitron';
+					this.ctx.fillStyle = 'white';
+					for (let j in this.enemies){
+						if(this.enemies[i].x + this.enemies[i].sizeX >= this.enemies[j].x && this.enemies[i].x >= this.enemies[j].x ){
+							this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + 30);
+						}else{
+							this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y);
+						}
+					}
+				}
+				this.ctx.font = '20px Orbitron';
+				this.ctx.fillStyle = "#000";
+				//счет
+				this.ctx.drawImage(this.sprites.score, this.scoreView.x, this.scoreView.y, this.scoreView.width, this.scoreView.height);
+				this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/2.2, this.scoreView.y + this.scoreView.height/1.7);
+				//стрик
+				this.ctx.drawImage(this.sprites.streak, this.streakView.x, this.streakView.y, this.streakView.width, this.streakView.height);
+				this.streakCounter > 300? 
+							this.getCounterText(this.streak.x5) : this.streakCounter > 200?
+							this.getCounterText(this.streak.x4) : this.streakCounter > 100?
+							this.getCounterText(this.streak.x3) : this.streakCounter > 50?
+							this.getCounterText(this.streak.x2) : this.getCounterText(1);
+				this.gameOver();
+				//взрывы
+				for( let i in this.explosions){
+					this.ctx.drawImage(this.sprites.boom, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, this.explosions[i].x-this.explosions[i].width*4, this.explosions[i].y-this.explosions[i].height*2, this.explosions[i].width*10, this.explosions[i].height*5);
+				}
+			}
+		}else if(this.isGameOver && this.isStarted){
+			this.ctx.font = '20px Orbitron';
+			this.ctx.fillStyle = "#fff";
+			this.ctx.fillText(this.gameOverText.text1, this.gameOverText.x, this.gameOverText.y);
+			this.ctx.fillText(`${this.gameOverText.text2} ${this.score}`, this.gameOverText.x, this.gameOverText.y+50);
+			if(!this.isExploded){
+				for( let i in this.explosions){
+					this.ctx.drawImage(this.sprites.boom, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, this.explosions[i].x-this.explosions[i].width*6, this.explosions[i].y-this.explosions[i].height*3, this.explosions[i].width*14, this.explosions[i].height*7);
+				}
+			}
 
 		}
-		//взрывы
+		//кнопка началы игры
+		if(!this.isStarted){
+			this.ctx.font = '20px Orbitron';
+			this.ctx.fillStyle = "#fff";
+			this.ctx.drawImage(this.sprites.button, this.button.x, this.button.y, this.button.width, this.button.height);
+			this.ctx.fillText('Начать игру', this.button.x + 55, this.button.y + this.button.height/1.6);
+		}
+	},
+
+	getCounterText: function(text){
+		return this.ctx.fillText(`x${text}`, this.streakView.x + this.streakView.width/2.2, this.streakView.y + this.streakView.height/1.7);
 	},
 
 	run: function(){
 		this.update();
 		this.render();
 		window.requestAnimationFrame(function(){
-			game.run()
+			game.run();
 		})
 	},
 
@@ -158,7 +278,7 @@ let game = {
 			enemies.push({
 				x: this.random(0, 430), 
 				y: -200,
-				speed: this.checkType(arr[i], 0.009, 0.005, 0.002, 0.001, 0.0009),
+				speed: this.checkType(arr[i], this.enemiesSpeed, this.enemiesSpeed/2, this.enemiesSpeed/4, this.enemiesSpeed/8, this.enemiesSpeed/16),
 				type: this.checkType(arr[i], this.sprites.enemiesType1, this.sprites.enemiesType2, this.sprites.enemiesType3, this.sprites.enemiesType4, this.sprites.enemiesType5),
 				sizeX: this.checkType(arr[i], 10, 20,40, 60, 100),
 				sizeY: this.checkType(arr[i], 20, 40, 80, 120, 200),
@@ -166,67 +286,71 @@ let game = {
 				dx: 0
 			})
 		}
-		this.enemies = enemies
+		this.enemies = enemies;
 	},
 	checkType: function(el,value1, value2, value3, value4, value5){
 		return el.length < 4?
 			value1 : el.length < 6?
 			value2 : el.length < 9?
 			value3 : el.length < 12?
-			value4 : value5
+			value4 : value5;
 	},
 	shoting: function(){ //обработка нажатия кнопки
 		document.addEventListener('keypress', (e)=>{
 			let code = (e.keyCode ? e.keyCode : e.which);
 			if(!this.target){
+				let localStatus = false;
 				for ( let i = 0; i < this.words.length; i++){
 					if(this.words[i][0] === String.fromCharCode(code)){
-						this.streakCounter += 1
+						this.streakCounter += 1;
 						this.streakCounter > 300? 
 							this.score += this.streak.x10 : this.streakCounter > 200?
 							this.score += this.streak.x5  : this.streakCounter > 100?
 							this.score += this.streak.x3  : this.streakCounter > 50?
-							this.score += this.streak.x2  : this.score += 1
-						this.index = i
+							this.score += this.streak.x2  : this.score++;
+						this.index = i;
 						this.target = this.words[i];
 						this.words[i] = this.words[i].slice(1);
 						this.target = this.target.slice(1);
-						this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.3}) 
-						break;
-					}else{
-						this.streakCounter = 0
-						this.score - 5 > 0? this.score -= 5 : this.score = 0
+						localStatus = true;
+						this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.3});
 						break;
 					}
+				}
+				if (!localStatus){
+					this.streakCounter = 0;
+					this.score - 5 > 0? this.score -= 5 : this.score = 0;
+					lockalStatus = false;
 				}
 			}else if(this.target[0] === String.fromCharCode(code) && this.target){
 				this.target = this.target.slice(1);
 				this.words[this.index] = this.words[this.index].slice(1);
 				this.shotArr.push({x: this.ship.x-2, y: this.ship.y-30, dx: 0, dy: 0, speed: 0.3});
-				this.streakCounter += 1
+				this.streakCounter += 1;
 				this.streakCounter > 300? 
 					this.score += this.streak.x10 : this.streakCounter > 200?
 					this.score += this.streak.x5  : this.streakCounter > 100?
 					this.score += this.streak.x3  : this.streakCounter > 50?
-					this.score += this.streak.x2  : this.score += 1	
+					this.score += this.streak.x2  : this.score ++;
 				if(this.words[this.index] === '') {
 					this.oldIndex  = this.index;
-					this.words.splice(this.oldIndex,1)
-					this.enemies[this.oldIndex].speed = 0.08
-					this.enemies[this.oldIndex].dy = 0
-					setTimeout(()=>{
-						this.enemies.splice(this.oldIndex,1)
-					},1200)
+					this.enemies[this.oldIndex].speed = 0.005;
+					this.enemies[this.oldIndex].dy = 0;
+					this.explosions.push({x: this.enemies[this.oldIndex].x, y: this.enemies[this.oldIndex].y, width: this.enemies[this.oldIndex].sizeX, height: this.enemies[this.oldIndex].sizeY, stepX: 0, stepY: 0, step: 0})
+					if( this.index === this.enemies.length - 1){
+						setTimeout((e)=>{
+							this.words.splice(this.oldIndex,1);
+							this.enemies.splice(this.oldIndex,1);
+						},800)
+					}else{
+						this.words.splice(this.oldIndex,1);
+						this.enemies.splice(this.oldIndex,1);
+					}
 				}
-				
-				/* console.log(this.target)
-				console.log(this.words) */
 			}else{
 				this.streakCounter = 0
 				this.score - 5 > 0? this.score -= 5 : this.score = 0
 			}
-			console.log(this.score);
-			console.log(this.streakCounter);
 		});
 	},
 	random: function (min,max){
@@ -255,10 +379,28 @@ let game = {
 				}else if( i === 4){
 					this.words.push(this.wordsType5[this.random(0, this.wordsType5.length-1)]);
 				}
-				
 			}
 		}
 	},
+	mouseEventListener: function(){
+		let canvas = document.querySelector('canvas');
+		canvas.addEventListener('click', (e)=>{
+			let x = e.pageX - e.target.offsetLeft,
+				y = e.pageY - e.target.offsetTop;
+			if( x >= this.button.x && x <= this.button.x + this.button.width &&
+				y >= this.button.y && y <= this.button.y + this.button.height){
+					this.isStarted = true;
+			}
+		});
+	},
+	gameOver: function(){
+		for(let i in this.enemies){
+			if(this.enemies[i].y >= this.ship.y){
+				this.explosions.push({x: this.ship.x, y: this.ship.y, width: this.ship.width, height: this.ship.height, stepX: 0, stepY: 0, step: 0})
+				this.isGameOver = true;
+			}
+		}
+	}
 }
 	
 game.background = {
@@ -271,11 +413,45 @@ game.background = {
 
 game.ship = {
 	x: 235, 
-	y: 700, 
+	y: 650,
+	width: 40,
+	height: 60,
 	speed: 0.1
 };
 
-game.wordsType1 = ["абы", "али", "акт", "аут", "бац", "бра", "бес", "бут", "воз", "все", "вар", "вне", "воз", "все", "вар", "вне", "его", "еще", "ерш", "ель", "еле", "еда", "жох", "жор", "жом", "жир", "жэк", "жим", "жук", "жар", "зал", "зов", "зад", "зоб", "зыкz", "зал", "зов", "зад", "зоб", "зык", "", "кош", "кал", "куш", "кой", "лев", "луб", "лес", "люб", "лиф", "меж", "мэр", "мим", "май", "мор", "ниц", "низ", "нюх", "нет", "нэп", "оно", "ото", "оба", "они", "ось", "пес", "пыж", "пол", "пал", "про", "пах", "ров", "раж", "рол", "рев", "ряд", "риф", "сев", "сыр", "сия", "соя", "сап", "сын", "тон", "туз", "там", "туш", "тис", "том", "угу", "ура", "узы", "уют", "ужо", "ухо", "фря", "фал", "фон", "фея", "фен", "хек", "хап", "хан", "хор", "хам", "ход", "хна", "цеп", "цап", "цыц", "цуг", "цех", "чал", "чем", "чох", "чай", "чхи", "чек", "чих", "чад", "чур", "чей", "шаг", "шик", "шоу", "шея", "шок", "шеф", "шов", "шах", "шиш", "шут", "эра", "эге", "эхо", "это", "эрг", "ямб", "яма", "язь", "яга", "ять", "явь", "ярд"];
+game.button = {
+	x: 125,
+	y: 200,
+	width: 250,
+	height: 50,
+}
+
+game.scoreView = {
+	x: 10,
+	y: 730,
+	width: 100,
+	height: 60,
+}
+
+game.streakView = {
+	x: 390,
+	y: 730,
+	width: 100,
+	height: 60,
+}
+
+game.gameOverText = {
+	x: 0,
+	y: 300,
+	dx: 0,
+	speed: 0.1,
+	text1: 'Игра окончена',
+	text2: `Счет:`
+}
+
+
+
+game.wordsType1 = ["абы", "али", "акт", "аут", "бац", "бра", "бес", "бут", "воз", "все", "вар", "вне", "воз", "все", "вар", "вне", "его", "еще", "ерш", "ель", "еле", "еда", "жох", "жор", "жом", "жир", "жэк", "жим", "жук", "жар", "зал", "зов", "зоб", "зык", "зал", "зов", "зоб", "зык", "кош",  "куш", "кой", "лев", "луб", "лес", "люб", "лиф", "меж", "мэр", "мим", "май", "мор", "ниц", "низ", "нюх", "нет", "нэп", "оно", "ото", "оба", "они", "ось", "пес", "пыж", "пол", "пал", "про", "пах", "ров", "раж", "рол", "рев", "ряд", "риф", "сев", "сыр", "сия", "соя", "сап", "сын", "тон", "туз", "там", "туш", "тис", "том", "угу", "ура", "узы", "уют", "ужо", "ухо", "фря", "фал", "фон", "фея", "фен", "хек", "хап", "хан", "хор", "хам", "ход", "хна", "цеп", "цап", "цыц", "цуг", "цех", "чал", "чем", "чох", "чай", "чхи", "чек", "чих", "чад", "чур", "чей", "шаг", "шик", "шоу", "шея", "шок", "шеф", "шов", "шах", "шиш", "шут", "эра", "эге", "эхо", "это", "эрг", "ямб", "яма", "язь", "яга", "ять", "явь", "ярд"];
 
 game.wordsType2 = ["акын", "атом", "амба", "адов", "арба", "айда", "арык", "альт", "агат", "арат", "беда", "блуд", "бред", "буфы", "балл", "било", "боза", "брус", "быть", "барк", "вязь", "ввек", "взад", "вниз", "вруб", "веко", "вилы", "воля", "втуз", "выпь", "гной", "грач", "гуща", "гать", "гонт", "гроб", "гипс", "гост", "груз", "гнет", "депо", "диск", "дуга", "дюны", "дань", "деть", "дока", "дура", "двор", "джут", "елей", "есть", "ежик", "если", "едок", "ерик", "едва", "енот", "елка", "жара", "жнея", "желе", "жила", "жанр", "жнец", "жезл", "жюри", "жижа", "жаль", "злой", "загс", "зной", "заяц", "зубр", "злак", "знак", "зато", "зонт", "зима", "игла", "ирис", "изба", "ишак", "ильм", "ибис", "инок", "идти", "иуда", "икры", "кафе", "киот", "клык", "корж", "криз", "куща", "квит", "клей", "ковш", "кофе", "лить", "лука", "леди", "лето", "ложа", "лыко", "лада", "линь", "лорд", "лязг", "мама", "миля", "мочь", "мята", "маца", "мисс", "муза", "мель", "морг", "муха", "ниже", "ныть", "наст", "нога", "негр", "ночь", "нива", "ныне", "нары", "новь", "ожог", "орда", "обод", "окот", "оспа", "овал", "овес", "оный", "отит", "один", "пава", "песо", "план", "плющ", "пояс", "пуск", "пари", "пиит", "плед", "пока", "раз", "рыть", "рама", "река", "роль", "рань", "риал", "роща", "руно", "рвач", "сват", "семь", "скит", "сноб", "спех", "стон", "счет", "сага", "своз", "сера", "теля", "тиун", "торф", "трус", "тюря", "тень", "тога", "трап", "туда", "такт", "уезд", "улей", "утка", "увод", "узел", "унты", "уход", "угон", "указ", "урок", "фарт", "фонд", "фига", "фтор", "фифа", "фарс", "фойе", "фетр", "фрак", "фита", "хина", "храп", "хрыч", "хлоп", "хула", "хала", "холя", "хвоя", "храм", "хрущ", "ценз", "цикл", "цена", "циан", "цель", "цеце", "цвет", "цепь", "цирк", "цаца", "чека", "чуть", "чета", "чара", "чтец", "чего", "чуни", "черт", "чадо", "чрез", "ширь", "шпик", "шарк", "шкив", "штат", "шейк", "шлюз", "шурф", "шина", "шоры", "щука", "щепа", "щель", "щелк", "щека", "эвон", "эфир", "эмка", "этак", "эфес", "эмир", "этаж", "этюд", "эльф", "эссе", "юнец", "юнга", "юмор", "юфть", "юбка", "юрта", "юань", "юный", "янки", "ярый", "явор", "ячий", "ямка", "ярус", "явка", "ячея", "ялик", "ящур", "аббат", "аймак", "альфа", "арбуз", "атлас", "аванс", "акциз", "ампер", "аркан", "ахать", "балет", "бармы", "бдеть","бивак", "блажь", "более", "брань", "будка", "бурки", "банда", "висок", "вмять", "возня", "вотум", "всход", "вывод", "вычет", "вагон", "вахта", "ведро", "гарем", "глава", "годок", "горло", "гроза", "гунны", "гавот", "гелий", "глубь", "голый", "дебит", "детва", "довод", "досуг", "дробь", "дурно", "девка", "диета", "дойти", "дочка", "евнух", "ежиха", "емкий", "ежели", "екать", "едкий", "езжай", "ехать", "егоза", "егерь", "жакан", "живец", "жупан", "жатка", "жилец", "жених", "житие", "жажда", "жетон", "жулик", "задок", "залив", "зарок", "звено", "злоба", "забой", "зажор", "замша", "затем", "зелье", "идеал", "икать", "исток", "извив", "индюк", "ихний", "изгой", "ирбис", "игрун", "изюбр", "кореш", "кочка", "крона", "кукиш", "купол", "казна", "камыш", "карта", "кварц", "кисея", "лабаз", "лассо", "лемма", "лидер", "лицей", "лошак", "лютый", "ладья", "лгать", "лепка", "майор", "манна", "махры", "метис", "миска", "морда", "мулат", "мышца", "мятый", "магий", "навык", "накат", "нарыв", "нейти", "низом", "норов", "надел", "намаз", "нахал", "ненцы", "обзор", "обувь", "одурь", "округ", "онуча", "орава", "особа", "отгул", "отрыв", "очень", "пехом", "пирог", "плеть", "пожар", "покус", "помол", "порыв", "почин", "причт", "пузан", "радон", "рафик", "резец", "ритор", "рокот", "ружье", "рыжий", "район", "рвань", "рейка", "свара", "сдуру", "сербы", "сидор", "сиять", "скунс", "слюни", "снизу", "сонет", "сотый", "тогда", "точка", "тромб", "тупой", "тяжба", "табор", "танго", "тезка", "тетка", "тонус", "узить", "умять", "утиль", "убыть", "укора", "упырь", "ухват", "удача", "улица", "устой", "фагот", "ферма", "финка", "фраза", "фюрер", "фалда", "фижмы", "фланг", "френч", "фасон", "химик", "холод", "хунта", "халиф", "хитон", "хомяк", "хвать", "хобби", "хором", "хиляк", "циник", "цапля", "цуцик", "целый", "цинга", "цапка", "цукат", "цедра", "цикля", "цокот", "чашка", "чешки", "чудак", "чуйка", "черви", "чирок", "чурек", "чалка", "чернь", "чреда", "шабаш", "шасть", "шепот", "шквал", "шпана", "штрих", "шакал", "шафер", "шинок", "шлейф", "щенок", "щипцы", "щелок", "щипок", "щелка", "щечка", "щекот", "щетка", "щучий", "щегол", "эркер", "экран", "эрзац", "этнос", "эклер", "эпоха", "этика", "эвены", "энный", "эстет", "юдоль", "юннат", "юнкер", "юниор", "юркий", "юлить", "юрист", "юкола", "юноша", "явный", "ястык", "якобы", "яркий", "явить", "яство", "яичко", "ямщик", "ябеда", "ясный"];
 
@@ -289,20 +465,3 @@ window.addEventListener('load', function(){
 	game.starting();
 });
 
-
-/* function Text(){
-	context.fillStyle = "#fff";
-	context.font = "20pt Verdana";
-	this.step = 0;
-}
-
-Text.prototype.runText = function(text, speed, posX, posY){
-	this.step += speed;
-	context.save();
-	context.translate(canvas.width, this.step);
-	context.fillText(text, 0, 0);
-	context.restore();
-	if (this.step === shipPosition.y){
-	}
-}
-let firstWord = new Text(); */
