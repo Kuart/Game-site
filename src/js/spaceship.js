@@ -6,7 +6,7 @@ let game = {
 	isGameOver: false,
 	isExploded: false, 
 	status: false, //движение коробля
-	localSwitch: false, //движение инфо,
+	localSwitch: false, //движение инфо
 	isRoundComplete: false,
 	round: null,
 	rounds: [
@@ -39,6 +39,7 @@ let game = {
 		button: null,
 		score: null,
 		streak: null,
+		globalTarget: null,
 	},
 	audio: {
 		shot: null,
@@ -54,7 +55,7 @@ let game = {
 	streakView: null,
 	gameOverText: null,
 	roundText: null,
-	yCounter: [0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, ],
+	yCounter: [-0, -15, -30, -45, -60, -75, -0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,],
 
 	init: function(){
 		let canvas = document.querySelector(`.spaceship`);
@@ -97,22 +98,19 @@ let game = {
 			if(this.isStarted){
 				//выстрелы
 				for (let i in this.shotArr){
-					let temp = (Math.round(this.enemies[this.index].x - (this.enemies[this.index].sizeX/2))) || (Math.round(this.enemies[this.oldIndex].x - (this.enemies[this.oldIndex].sizeX/2)));
 					if(this.enemies.length){
-						if( temp < this.ship.x){
-							if(temp != this.ship.x){
-								this.shotArr[i].dx += 0.0001;
-								this.shotArr[i].x -= this.shotArr[i].dx;
-							}
-						}else if(temp > this.ship.x){
-							if(temp != this.ship.x){
-								this.shotArr[i].dx += 0.00001;
-								this.shotArr[i].x += this.shotArr[i].dx;
-							}
+						if( this.shotArr[i].target.x + this.shotArr[i].target.sizeX/2 < 210){
+							this.shotArr[i].dx += (this.shotArr[i].x - this.shotArr[i].target.x)*this.shotArr[i].speed ;
+							this.shotArr[i].x -= this.shotArr[i].dx;
+						}else if(this.shotArr[i].target.x + this.shotArr[i].target.sizeX/2 > 250){
+							this.shotArr[i].dx += (this.shotArr[i].x - this.shotArr[i].target.x)*this.shotArr[i].speed ;
+							this.shotArr[i].x -= this.shotArr[i].dx;
+						}else{
+							this.shotArr[i].x = this.shotArr[i].target.x
 						}
-						this.shotArr[i].dy += 1;
+						this.shotArr[i].dy += (this.shotArr[i].y - this.shotArr[i].target.y)*this.shotArr[i].speed ;
 						this.shotArr[i].y -= this.shotArr[i].dy;
-						if (this.shotArr[i].y <= this.enemies[this.index].y){
+						if (this.shotArr[i].y < this.shotArr[i].target.y + this.shotArr[i].target.sizeY/2){
 							this.shotArr.splice(i,1);
 						}
 					}
@@ -135,7 +133,6 @@ let game = {
 					this.enemies[i].y += this.enemies[i].dy;
 				}
 			}
-			
 			//взрывы
 			for( let i in this.explosions){
 				this.explosions[i].step++
@@ -194,16 +191,22 @@ let game = {
 			if(this.isStarted){
 				//высрелы
 				for (let i in this.shotArr){
-					this.ctx.drawImage(this.sprites.shot, this.shotArr[i].x, this.shotArr[i].y, 60, 100);
+					this.ctx.drawImage(this.sprites.shot, this.shotArr[i].x, this.shotArr[i].y, 60, 60);
+				}
+				//цель
+				if(this.target){
+					for (let i in this.words){
+						if(this.target === this.words[i]){
+							this.ctx.drawImage(this.sprites.globalTarget, this.enemies[i].x - this.enemies[i].sizeX/1.9, this.enemies[i].y - this.enemies[i].sizeX/0.9, this.enemies[i].sizeX*2, this.enemies[i].sizeY*2);
+						}
+					}
 				}
 				//враги
 				for( let i in this.enemies){
 					this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
 					this.ctx.font = '16px Orbitron';
 					this.ctx.fillStyle = "#fff";
-					this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i]);
-					
-									
+					this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.enemies[i].sizeY + this.yCounter[i]);			
 				}
 				if(this.isRoundComplete){
 					this.ctx.font = '20px Orbitron';
@@ -216,13 +219,7 @@ let game = {
 				this.ctx.fillStyle = "#000";
 				//счет
 				this.ctx.drawImage(this.sprites.score, this.scoreView.x, this.scoreView.y, this.scoreView.width, this.scoreView.height);
-				if(this.score > 1000){
-					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/1.2, this.scoreView.y + this.scoreView.height/1.7);
-				}else if(this.score > 100){
-					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/1.8, this.scoreView.y + this.scoreView.height/1.7);
-				}else{
-					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/2.2, this.scoreView.y + this.scoreView.height/1.7);
-				}
+				this.ctx.fillText(this.score.toString().padStart(3,0) || this.score, this.scoreView.x + this.scoreView.width/3.2, this.scoreView.y + this.scoreView.height/1.7);
 				//стрик
 				this.ctx.drawImage(this.sprites.streak, this.streakView.x, this.streakView.y, this.streakView.width, this.streakView.height);
 				this.streakCounter > 300? 
@@ -257,7 +254,7 @@ let game = {
 	},
 
 	getCounterText: function(text){
-		return this.ctx.fillText(`x${text}`, this.streakView.x + this.streakView.width/2.2, this.streakView.y + this.streakView.height/1.7);
+		return this.ctx.fillText(`x${text}`, this.streakView.x + this.streakView.width/3, this.streakView.y + this.streakView.height/1.7);
 	},
 
 	run: function(){
@@ -279,10 +276,10 @@ let game = {
 		for ( let i = 0; i < arr.length; i++){
 			enemies.push({
 				x: this.random(0, 430), 
-				y: -200,
+				y: -100,
 				speed: this.checkType(arr[i], this.enemiesSpeed, this.enemiesSpeed/2, this.enemiesSpeed/4, this.enemiesSpeed/8, this.enemiesSpeed/16),
 				type: this.checkType(arr[i], this.sprites.enemiesType1, this.sprites.enemiesType2, this.sprites.enemiesType3, this.sprites.enemiesType4, this.sprites.enemiesType5),
-				sizeX: this.checkType(arr[i], 10, 20,40, 60, 100),
+				sizeX: this.checkType(arr[i], 10, 20, 40, 60, 100),
 				sizeY: this.checkType(arr[i], 20, 40, 80, 120, 200),
 				dy: 0,
 				dx: 0
@@ -315,14 +312,16 @@ let game = {
 				this.enemies = [];
 				this.shotArr = [];
 				this.explosions = [];
-				this.score = 0
-				this.streakCounter = 0
+				this.score = 0;
+				this.streakCounter = 0;
+				this.target = '';
 				for(let i in this.rounds){
 					this.rounds[i].isComplete = false
 				}
 			}else if(obj.x <= 150 && obj.status === false){
 				this.localSwitch = false;
 				this.explosions = [];
+				this.target = '';
 				obj.x = 0;
 				obj.dx = 0;
 				this.createNewRound()
@@ -355,7 +354,7 @@ let game = {
 						this.words[i] = this.words[i].slice(1);
 						this.target = this.target.slice(1);
 						localStatus = true;
-						this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.3});
+						this.shotArr.push({x: this.ship.x-5, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[i]});
 						this.shotAudio()
 						break;
 					}
@@ -369,7 +368,7 @@ let game = {
 				this.shotAudio()
 				this.target = this.target.slice(1);
 				this.words[this.index] = this.words[this.index].slice(1);
-				this.shotArr.push({x: this.ship.x-2, y: this.ship.y-30, dx: 0, dy: 0, speed: 0.3});
+				this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[this.index]});
 				this.streakCounter += 1;
 				this.streakCounter > 300? 
 					this.score += this.streak.x10 : this.streakCounter > 200?
@@ -388,7 +387,7 @@ let game = {
 						setTimeout((e)=>{
 								this.enemies.splice(this.oldIndex,1);
 								
-						},800)
+						},700)
 						if(this.words.length === 0){
 							this.isRoundComplete = true;
 						}
@@ -420,6 +419,7 @@ let game = {
 	},
 
 	wordsGenerator: function(round){
+		let temp = ''
 		for (let i = 0; i < round.types.length; i++){
 			for(let j = 0; j < round.types[i]; j++){
 				if( i === 0){
@@ -541,8 +541,7 @@ game.roundText = {
 	text1: '',
 	text2: '',
 	status: false
-}
-
+};
 
 game.wordsType1 = ["абы", "али", "акт", "аут", "бац", "бра", "бес", "бут", "воз", "все", "вар", "вне", "воз", "все", "вар", "вне", "его", "еще", "ерш", "ель", "еле", "еда", "жох", "жор", "жом", "жир", "жэк", "жим", "жук", "жар", "зал", "зов", "зоб", "зык", "зал", "зов", "зоб", "зык", "кош",  "куш", "кой", "лев", "луб", "лес", "люб", "лиф", "меж", "мэр", "мим", "май", "мор", "ниц", "низ", "нюх", "нет", "нэп", "оно", "ото", "оба", "они", "ось", "пес", "пыж", "пол", "пал", "про", "пах", "ров", "раж", "рол", "рев", "ряд", "риф", "сев", "сыр", "сия", "соя", "сап", "сын", "тон", "туз", "там", "туш", "тис", "том", "угу", "ура", "узы", "уют", "ужо", "ухо", "фря", "фал", "фон", "фея", "фен", "хек", "хап", "хан", "хор", "хам", "ход", "хна", "цеп", "цап", "цыц", "цуг", "цех", "чал", "чем", "чох", "чай", "чхи", "чек", "чих", "чад", "чур", "чей", "шаг", "шик", "шоу", "шея", "шок", "шеф", "шов", "шах", "шиш", "шут", "эра", "эге", "эхо", "это", "эрг", "ямб", "яма", "язь", "яга", "ять", "явь", "ярд"];
 
