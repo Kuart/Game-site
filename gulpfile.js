@@ -41,6 +41,16 @@ function style(){
         .pipe(gulp.dest('./build/css'));
 }
 
+function fonts(){
+    return gulp.src('./src/fonts/**/*.ttf')
+        .pipe(gulp.dest('./build/fonts'));
+}
+
+function audio(){
+    return gulp.src('./src/audio/**/*')
+        .pipe(gulp.dest('./build/audio'));
+}
+
 function watch(){
     browserSync.init({
         server: {
@@ -67,7 +77,9 @@ gulp.task('watch', watch);
 gulp.task('styleSass', styleSass);
 gulp.task('htmlBuild', htmlBuild);
 gulp.task('reimg', reimg);
+gulp.task('fonts', fonts);
+gulp.task('audio', audio);
 
 gulp.task('build', gulp.series(clean,
-    scripts, gulp.parallel(style, reimg, htmlBuild)
+    scripts, gulp.parallel(style, reimg, htmlBuild, fonts, audio)
 ));

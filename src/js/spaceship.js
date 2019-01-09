@@ -457,29 +457,29 @@ let game = {
 		for(let i in this.enemies){
 			if(this.enemies[i].y >= this.ship.y){
 				this.explosions.push({x: this.ship.x, y: this.ship.y, width: this.ship.width, height: this.ship.height, stepX: 0, stepY: 0, step: 0})
-				this.boomAudio()
-				this.audio.background.pause()
+				this.boomAudio();
+				this.audio.background.pause();
 				this.audio.background.currentTime = 0.0;
 				this.isGameOver = true;
 			}
 		}
 	},
 	shotAudio: function(){
-		this.audio.shot = new Audio()
-		this.audio.shot.src = '../audio/shot.ogg'
+		this.audio.shot = new Audio();
+		this.audio.shot.src = '../audio/shot.ogg';
 		this.audio.shot.autoplay = true;
 		this.audio.shot.volume = 0.6;
 	},
 
 	boomAudio: function(){
-		this.audio.boom = new Audio()
-		this.audio.boom.src = '../audio/boom.ogg'
+		this.audio.boom = new Audio();
+		this.audio.boom.src = '../audio/boom.ogg';
 		this.audio.boom.autoplay = true;
 		this.audio.boom.volume = 0.6;
 	},
 	backgroundAudio: function(){
-		this.audio.background = new Audio()
-		this.audio.background.src = '../audio/background.mp3'
+		this.audio.background = new Audio();
+		this.audio.background.src = '../audio/background.mp3';
 		this.audio.background.autoplay = true;
 		this.audio.background.loop = true;
 		this.audio.background.volume = 0.1;
