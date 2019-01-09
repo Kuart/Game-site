@@ -49,6 +49,7 @@ let game = {
 	streakView: null,
 	gameOverText: null,
 	roundText: null,
+	yCounter: [0,10,20,30,40],
 
 	init: function(){
 		let canvas = document.querySelector(`.spaceship`);
@@ -193,15 +194,14 @@ let game = {
 				//враги
 				for( let i in this.enemies){
 					this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
-					this.ctx.font = '20px Orbitron';
-					this.ctx.fillStyle = 'white';
-					for (let j in this.enemies){
-						if(this.enemies[i].x + this.enemies[i].sizeX >= this.enemies[j].x && this.enemies[i].x >= this.enemies[j].x ){
-							this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + 30);
-						}else{
-							this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y);
-						}
+					this.ctx.font = '16px Orbitron';
+					this.ctx.fillStyle = "#fff";
+					if(i > 4 && this.words[i]){
+						this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i-3]);
+					}else if(this.words[i]){
+						this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i]);
 					}
+									
 				}
 				if(this.isRoundComplete){
 					this.ctx.fillText(`${this.roundText.text2} ${this.rounds[this.round].name}`, this.roundText.x, this.roundText.y);
@@ -262,7 +262,6 @@ let game = {
 		this.isRoundComplete = false;
 		this.createWords(this.rounds);
 		this.createEnemies(this.words);
-		
 	},
 
 	createEnemies: function(arr){
