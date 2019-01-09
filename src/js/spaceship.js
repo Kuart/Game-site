@@ -40,6 +40,11 @@ let game = {
 		score: null,
 		streak: null,
 	},
+	audio: {
+		shot: null,
+		boom: null,
+		background: null
+	},
 	enemies: null,
 	background: null,
 	ship: null,
@@ -49,7 +54,7 @@ let game = {
 	streakView: null,
 	gameOverText: null,
 	roundText: null,
-	yCounter: [0,10,20,30,40],
+	yCounter: [0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, 0, 15, 30, 45, 60, 75, ],
 
 	init: function(){
 		let canvas = document.querySelector(`.spaceship`);
@@ -196,14 +201,13 @@ let game = {
 					this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
 					this.ctx.font = '16px Orbitron';
 					this.ctx.fillStyle = "#fff";
-					if(i > 4 && this.words[i]){
-						this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i-3]);
-					}else if(this.words[i]){
-						this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i]);
-					}
+					this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.yCounter[i]);
+					
 									
 				}
 				if(this.isRoundComplete){
+					this.ctx.font = '20px Orbitron';
+					this.ctx.fillStyle = "#fff";
 					this.ctx.fillText(`${this.roundText.text2} ${this.rounds[this.round].name}`, this.roundText.x, this.roundText.y);
 					this.ctx.fillText(`${this.roundText.text2} Счет: ${this.score}`, this.roundText.x, this.roundText.y+50);
 					this.rounds[this.round].isComplete = true;
@@ -212,7 +216,13 @@ let game = {
 				this.ctx.fillStyle = "#000";
 				//счет
 				this.ctx.drawImage(this.sprites.score, this.scoreView.x, this.scoreView.y, this.scoreView.width, this.scoreView.height);
-				this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/2.2, this.scoreView.y + this.scoreView.height/1.7);
+				if(this.score > 1000){
+					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/1.2, this.scoreView.y + this.scoreView.height/1.7);
+				}else if(this.score > 100){
+					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/1.8, this.scoreView.y + this.scoreView.height/1.7);
+				}else{
+					this.ctx.fillText(this.score, this.scoreView.x + this.scoreView.width/2.2, this.scoreView.y + this.scoreView.height/1.7);
+				}
 				//стрик
 				this.ctx.drawImage(this.sprites.streak, this.streakView.x, this.streakView.y, this.streakView.width, this.streakView.height);
 				this.streakCounter > 300? 
@@ -289,7 +299,6 @@ let game = {
 			obj.x += obj.dx
 			if(obj.x >= 249){
 				this.localSwitch = true;
-				console.log(obj.x);
 			}
 		}
 		else if(obj.x > -250 && this.localSwitch){
@@ -305,14 +314,15 @@ let game = {
 				this.words = [];
 				this.enemies = [];
 				this.shotArr = [];
+				this.explosions = [];
 				this.score = 0
 				this.streakCounter = 0
 				for(let i in this.rounds){
 					this.rounds[i].isComplete = false
 				}
 			}else if(obj.x <= 150 && obj.status === false){
-				console.log(obj.x);
-				this.localSwitch = false
+				this.localSwitch = false;
+				this.explosions = [];
 				obj.x = 0;
 				obj.dx = 0;
 				this.createNewRound()
@@ -346,6 +356,7 @@ let game = {
 						this.target = this.target.slice(1);
 						localStatus = true;
 						this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.3});
+						this.shotAudio()
 						break;
 					}
 				}
@@ -355,6 +366,7 @@ let game = {
 					lockalStatus = false;
 				}
 			}else if(this.target[0] === String.fromCharCode(code) && this.target){
+				this.shotAudio()
 				this.target = this.target.slice(1);
 				this.words[this.index] = this.words[this.index].slice(1);
 				this.shotArr.push({x: this.ship.x-2, y: this.ship.y-30, dx: 0, dy: 0, speed: 0.3});
@@ -365,21 +377,25 @@ let game = {
 					this.score += this.streak.x3  : this.streakCounter > 50?
 					this.score += this.streak.x2  : this.score ++;
 				if(this.words[this.index] === '') {
+					this.shotAudio()
 					this.oldIndex  = this.index;
 					this.enemies[this.oldIndex].speed = 0.005;
 					this.enemies[this.oldIndex].dy = 0;
-					this.explosions.push({x: this.enemies[this.oldIndex].x, y: this.enemies[this.oldIndex].y, width: this.enemies[this.oldIndex].sizeX, height: this.enemies[this.oldIndex].sizeY, stepX: 0, stepY: 0, step: 0})
+					this.explosions.push({x: this.enemies[this.oldIndex].x, y: this.enemies[this.oldIndex].y, width: this.enemies[this.oldIndex].sizeX, height: this.enemies[this.oldIndex].sizeY, stepX: 0, stepY: 0, step: 0});
 					if( this.index === this.enemies.length - 1){
 						this.words.splice(this.oldIndex,1);	
+						this.boomAudio()
 						setTimeout((e)=>{
 								this.enemies.splice(this.oldIndex,1);
-						},1000)
+								
+						},800)
 						if(this.words.length === 0){
 							this.isRoundComplete = true;
 						}
 					}else{
 						this.words.splice(this.oldIndex,1);
 						this.enemies.splice(this.oldIndex,1);
+						this.boomAudio()
 					}
 				}
 			}else{
@@ -430,11 +446,9 @@ let game = {
 				y >= this.button.y && y <= this.button.y + this.button.height && !this.isStarted){
 					this.isGameOver = false;
 					this.isStarted = true;
-
 					this.shoting();
-					this.createNewRound()
-					console.log(this.words);
-					
+					this.createNewRound();
+					this.backgroundAudio()		
 			}
 		})
 	},
@@ -443,9 +457,32 @@ let game = {
 		for(let i in this.enemies){
 			if(this.enemies[i].y >= this.ship.y){
 				this.explosions.push({x: this.ship.x, y: this.ship.y, width: this.ship.width, height: this.ship.height, stepX: 0, stepY: 0, step: 0})
+				this.boomAudio()
+				this.audio.background.pause()
+				this.audio.background.currentTime = 0.0;
 				this.isGameOver = true;
 			}
 		}
+	},
+	shotAudio: function(){
+		this.audio.shot = new Audio()
+		this.audio.shot.src = '../audio/shot.ogg'
+		this.audio.shot.autoplay = true;
+		this.audio.shot.volume = 0.6;
+	},
+
+	boomAudio: function(){
+		this.audio.boom = new Audio()
+		this.audio.boom.src = '../audio/boom.ogg'
+		this.audio.boom.autoplay = true;
+		this.audio.boom.volume = 0.6;
+	},
+	backgroundAudio: function(){
+		this.audio.background = new Audio()
+		this.audio.background.src = '../audio/background.mp3'
+		this.audio.background.autoplay = true;
+		this.audio.background.loop = true;
+		this.audio.background.volume = 0.1;
 	}
 }
 	
