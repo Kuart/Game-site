@@ -5,17 +5,17 @@ let game = {
 	isStarted: false, 
 	isGameOver: false,
 	isExploded: false, 
-	status: false, //движение коробля
-	localSwitch: false, //движение инфо
-	isRoundComplete: false,
+	status: false, //движение корабля по оси X
+	localSwitch: false, //движение текста (конец игры/между раундами)
+	isRoundCompleted: false,
 	round: null,
 	rounds: [
-		{name: 'Раунд завершен', types: [2, 2, 0, 3, 0], isComplete: false},
-		{name: 'Раунд завершен', types: [2, 3, 1, 4, 0], isComplete: false},
-		{name: 'Раунд завершен', types: [3, 2, 2, 3, 1], isComplete: false},
-		{name: 'Раунд завершен', types: [2, 2, 2, 4, 2], isComplete: false},
-		{name: 'Раунд завершен', types: [3, 3, 2, 4, 3], isComplete: false}],
-	count: 0,
+		{name: 'Раунд завершен', types: [2, 2, 0, 3, 0], isCompleted: false},
+		{name: 'Раунд завершен', types: [2, 3, 1, 4, 0], isCompleted: false},
+		{name: 'Раунд завершен', types: [3, 2, 2, 3, 1], isCompleted: false},
+		{name: 'Раунд завершен', types: [2, 2, 2, 4, 2], isCompleted: false},
+		{name: 'Раунд завершен', types: [3, 3, 2, 4, 3], isCompleted: false}],
+	count: 0,	
 	score: 0,
 	streak: {x2: 2, x3: 3, x5: 5, x10: 10},
 	streakCounter: 0,
@@ -23,7 +23,7 @@ let game = {
 	target: '',
 	index: null,
 	oldIndex: null,
-	shotArr: [],
+	shots: [],
 	words: [],
 	explosions: [],
 	sprites: {
@@ -35,16 +35,16 @@ let game = {
 		enemiesType3: null,
 		enemiesType4: null,
 		enemiesType5: null,
-		boom: null,
+		explosion: null,
 		button: null,
 		score: null,
 		streak: null,
-		globalTarget: null,
+		target: null,
 	},
 	audio: {
 		shot: null,
-		boom: null,
-		background: null
+		explosion: null,
+		background: null,
 	},
 	enemies: null,
 	background: null,
@@ -55,7 +55,7 @@ let game = {
 	streakView: null,
 	gameOverText: null,
 	roundText: null,
-	yCounter: [-0, -15, -30, -45, -60, -75, -0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,],
+	textOffset: [-0, -15, -30, -45, -60, -75, -0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75,-0, -15, -30, -45, -60, -75],
 
 	init: function(){
 		let canvas = document.querySelector(`.spaceship`);
@@ -67,13 +67,13 @@ let game = {
 			this.sprites[i] = new Image();
 			this.sprites[i].src = `../img/${i}.png`;
 		}
-		this.mouseEventListener();
+		this.mouseEventListener(); //449
 	},
 
-	starting: function(){
-		this.init();
-		this.load();
-		this.run();
+	start: function(){
+		this.init(); //60
+		this.load(); //65
+		this.run();  //268
 	},
 
 	update: function(){
@@ -82,8 +82,9 @@ let game = {
 		if(this.background.dy < this.background.height){
 			this.background.dy -= this.background.height;
 		}
-
-		if(!this.isGameOver){	//корабль
+		
+		if(!this.isGameOver){
+			//корабль	
 			if(!this.status){
 				this.ship.x -= this.ship.speed;
 				if( this.ship.x < 210){
@@ -95,23 +96,25 @@ let game = {
 					this.status = false;
 				}
 			}
+
 			if(this.isStarted){
 				//выстрелы
-				for (let i in this.shotArr){
+				for (let i in this.shots){
 					if(this.enemies.length){
-						if( this.shotArr[i].target.x + this.shotArr[i].target.sizeX/2 < 210){
-							this.shotArr[i].dx += (this.shotArr[i].x - this.shotArr[i].target.x)*this.shotArr[i].speed ;
-							this.shotArr[i].x -= this.shotArr[i].dx;
-						}else if(this.shotArr[i].target.x + this.shotArr[i].target.sizeX/2 > 250){
-							this.shotArr[i].dx += (this.shotArr[i].x - this.shotArr[i].target.x)*this.shotArr[i].speed ;
-							this.shotArr[i].x -= this.shotArr[i].dx;
+						if( this.shots[i].target.x + this.shots[i].target.sizeX/2 < 210){
+							this.shots[i].dx += (this.shots[i].x - this.shots[i].target.x)*this.shots[i].speed;
+							this.shots[i].x -= this.shots[i].dx;
+						}else if(this.shots[i].target.x + this.shots[i].target.sizeX/2 > 250){
+							this.shots[i].dx += (this.shots[i].x - this.shots[i].target.x)*this.shots[i].speed;
+							this.shots[i].x -= this.shots[i].dx;
 						}else{
-							this.shotArr[i].x = this.shotArr[i].target.x
+							this.shots[i].x = this.shots[i].target.x;
 						}
-						this.shotArr[i].dy += (this.shotArr[i].y - this.shotArr[i].target.y)*this.shotArr[i].speed ;
-						this.shotArr[i].y -= this.shotArr[i].dy;
-						if (this.shotArr[i].y < this.shotArr[i].target.y + this.shotArr[i].target.sizeY/2){
-							this.shotArr.splice(i,1);
+
+						this.shots[i].dy += (this.shots[i].y - this.shots[i].target.y)*this.shots[i].speed;
+						this.shots[i].y -= this.shots[i].dy;
+						if (this.shots[i].y < this.shots[i].target.y + this.shots[i].target.sizeY/2){
+							this.shots.splice(i,1);
 						}
 					}
 				}
@@ -121,7 +124,6 @@ let game = {
 						if(Math.floor(this.enemies[i].x) != this.ship.x-20 ){
 							this.enemies[i].dx += 0.0001;
 							this.enemies[i].x += this.enemies[i].dx;
-							
 						}	
 					}else if(Math.floor(this.enemies[i].x) > this.ship.x){
 						if(Math.floor(this.enemies[i].x) != this.ship.x){
@@ -135,41 +137,40 @@ let game = {
 			}
 			//взрывы
 			for( let i in this.explosions){
-				this.explosions[i].step++
+				this.explosions[i].step++;
 				if(this.explosions[i].step > 3){
-					this.explosions[i].step = 0
+					this.explosions[i].step = 0;
 					if(this.explosions[i].stepX != 390){
-						this.explosions[i].stepX += 130
+						this.explosions[i].stepX += 130;
 					}else if(this.explosions[i].stepX === 130 && this.explosions[i].stepY === 390){
-						this.explosions.splice(i,1)
+						this.explosions.splice(i,1);
 					}else{
-						this.explosions[i].stepY += 130
-						this.explosions[i].stepX = 0
+						this.explosions[i].stepY += 130;
+						this.explosions[i].stepX = 0;
 					}
 				}
 			}
 		}
-		if(this.isRoundComplete){
-			this.moveText(this.roundText)
+		//движение текста между раундами (301)
+		if(this.isRoundCompleted){
+			this.moveText(this.roundText);
 		}
+		
 		if(this.isGameOver && this.isStarted){
-			this.moveText(this.gameOverText)
+			this.moveText(this.gameOverText)//движение текста в конце игры (301)
+			//взрыв корабля
 			for( let i in this.explosions){
-				this.explosions[i].step++
-
+				this.explosions[i].step++;
 				if(this.explosions[i].step > 4){
-					this.explosions[i].step = 0
-
+					this.explosions[i].step = 0;
 					if(this.explosions[i].stepX != 390){
-						this.explosions[i].stepX += 130
+						this.explosions[i].stepX += 130;
 					}else if(this.explosions[i].stepX === 130 && this.explosions[i].stepY === 390){
-						this.explosions.splice(i,1)
-						this.score = 0,
-						this.streakCounter = 0;
-						this.isExploded = false
+						this.explosions.splice(i,1);
+						this.isExploded = false;
 					}else{
-						this.explosions[i].stepY += 130
-						this.explosions[i].stepX = 0
+						this.explosions[i].stepY += 130;
+						this.explosions[i].stepX = 0;
 					}
 				}
 			}
@@ -178,26 +179,27 @@ let game = {
 
 	render: function(){
 		this.ctx.clearRect(0, 0, this.width, this.height);
-		//фон
+		//бэкграунд
 		this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y + this.background.dy, 600, 1920, 0, 0 , 600, 1920 );
-
 		if(this.background.dy < (this.background.height + 1920)){
-			this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y, 600, 1900, 0, this.background.height - this.background.dy, 600, 1920);
+			this.ctx.drawImage(this.sprites.background, this.background.x, this.background.y, 600, 1900, 0, 
+				this.background.height - this.background.dy, 600, 1920);
 		}
 
 		if(!this.isGameOver){
-			//корбаль
+			//корабль
 			this.ctx.drawImage(this.sprites.ship, this.ship.x, this.ship.y, 40, 60);
 			if(this.isStarted){
 				//высрелы
-				for (let i in this.shotArr){
-					this.ctx.drawImage(this.sprites.shot, this.shotArr[i].x, this.shotArr[i].y, 60, 60);
+				for (let i in this.shots){
+					this.ctx.drawImage(this.sprites.shot, this.shots[i].x, this.shots[i].y, 60, 60);
 				}
 				//цель
 				if(this.target){
 					for (let i in this.words){
 						if(this.target === this.words[i]){
-							this.ctx.drawImage(this.sprites.globalTarget, this.enemies[i].x - this.enemies[i].sizeX/1.9, this.enemies[i].y - this.enemies[i].sizeX/0.9, this.enemies[i].sizeX*2, this.enemies[i].sizeY*2);
+							this.ctx.drawImage(this.sprites.target, this.enemies[i].x - this.enemies[i].sizeX/1.9, 
+								this.enemies[i].y - this.enemies[i].sizeX/0.9, this.enemies[i].sizeX*2, this.enemies[i].sizeY*2);
 						}
 					}
 				}
@@ -206,41 +208,47 @@ let game = {
 					this.ctx.drawImage(this.enemies[i].type, this.enemies[i].x, this.enemies[i].y, this.enemies[i].sizeX, this.enemies[i].sizeY);
 					this.ctx.font = '16px Orbitron';
 					this.ctx.fillStyle = "#fff";
-					this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.enemies[i].sizeY + this.yCounter[i]);			
+					this.ctx.fillText(this.words[i], this.enemies[i].x, this.enemies[i].y + this.enemies[i].sizeY + this.textOffset[i]);			
 				}
-				if(this.isRoundComplete){
+				//текст между раундами
+				if(this.isRoundCompleted){
 					this.ctx.font = '20px Orbitron';
 					this.ctx.fillStyle = "#fff";
 					this.ctx.fillText(`${this.roundText.text2} ${this.rounds[this.round].name}`, this.roundText.x, this.roundText.y);
-					this.ctx.fillText(`${this.roundText.text2} Счет: ${this.score}`, this.roundText.x, this.roundText.y+50);
-					this.rounds[this.round].isComplete = true;
+					this.ctx.fillText(`${this.roundText.text2} ${this.score}`, this.roundText.x, this.roundText.y+50);
+					this.rounds[this.round].isCompleted = true;
 				}
+				// окно/текст счета
 				this.ctx.font = '20px Orbitron';
 				this.ctx.fillStyle = "#000";
-				//счет
 				this.ctx.drawImage(this.sprites.score, this.scoreView.x, this.scoreView.y, this.scoreView.width, this.scoreView.height);
-				this.ctx.fillText(this.score.toString().padStart(3,0) || this.score, this.scoreView.x + this.scoreView.width/3.2, this.scoreView.y + this.scoreView.height/1.7);
-				//стрик
+				this.ctx.fillText(this.score.toString().padStart(3,0) || this.score, this.scoreView.x + this.scoreView.width/3.2, 
+					this.scoreView.y + this.scoreView.height/1.7);
+				// окно/текст стрика (264)
 				this.ctx.drawImage(this.sprites.streak, this.streakView.x, this.streakView.y, this.streakView.width, this.streakView.height);
 				this.streakCounter > 300? 
-							this.getCounterText(this.streak.x5) : this.streakCounter > 200?
-							this.getCounterText(this.streak.x4) : this.streakCounter > 100?
-							this.getCounterText(this.streak.x3) : this.streakCounter > 50?
-							this.getCounterText(this.streak.x2) : this.getCounterText(1);
-				this.gameOver();
+							this.drawStreakText(this.streak.x5) : this.streakCounter > 200?
+							this.drawStreakText(this.streak.x4) : this.streakCounter > 100?
+							this.drawStreakText(this.streak.x3) : this.streakCounter > 50?
+							this.drawStreakText(this.streak.x2) : this.drawStreakText(1);
 				//взрывы
 				for( let i in this.explosions){
-					this.ctx.drawImage(this.sprites.boom, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, this.explosions[i].x-this.explosions[i].width*4, this.explosions[i].y-this.explosions[i].height*2, this.explosions[i].width*10, this.explosions[i].height*5);
+					this.ctx.drawImage(this.sprites.explosion, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, 
+						this.explosions[i].x-this.explosions[i].width*4, this.explosions[i].y-this.explosions[i].height*2, 
+						this.explosions[i].width*10, this.explosions[i].height*5);
 				}
+				//проверка на конец игры(465)
+				this.gameOver();
 			}
 		}else if(this.isGameOver && this.isStarted){
 			this.ctx.font = '20px Orbitron';
 			this.ctx.fillStyle = "#fff";
 			this.ctx.fillText(this.gameOverText.text1, this.gameOverText.x, this.gameOverText.y);
 			this.ctx.fillText(`${this.gameOverText.text2} ${this.score}`, this.gameOverText.x, this.gameOverText.y+50);
+			//взрыв коробля
 			if(!this.isExploded){
 				for( let i in this.explosions){
-					this.ctx.drawImage(this.sprites.boom, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, this.explosions[i].x-this.explosions[i].width*6, this.explosions[i].y-this.explosions[i].height*3, this.explosions[i].width*14, this.explosions[i].height*7);
+					this.ctx.drawImage(this.sprites.explosion, this.explosions[i].stepX, this.explosions[i].stepY, 130, 130, this.explosions[i].x-this.explosions[i].width*6, this.explosions[i].y-this.explosions[i].height*3, this.explosions[i].width*14, this.explosions[i].height*7);
 				}
 			}
 		}
@@ -253,32 +261,34 @@ let game = {
 		}
 	},
 
-	getCounterText: function(text){
+	drawStreakText: function(text){
 		return this.ctx.fillText(`x${text}`, this.streakView.x + this.streakView.width/3, this.streakView.y + this.streakView.height/1.7);
 	},
 
 	run: function(){
-		this.update();
-		this.render();
+		this.update(); //(79)
+		this.render(); //(180)
 		window.requestAnimationFrame(function(){
-			game.run();
+			game.run();//268
 		})
 	},
 
-	createNewRound: function(){
-		this.isRoundComplete = false;
-		this.createWords(this.rounds);
-		this.createEnemies(this.words);
+	startNewRound: function(){
+		this.isRoundCompleted = false;
+		this.createWords(this.rounds);  //421
+		this.createEnemies(this.words); //282
 	},
 
 	createEnemies: function(arr){
 		let enemies = [];
 		for ( let i = 0; i < arr.length; i++){
 			enemies.push({
-				x: this.random(0, 430), 
+				x: this.randoming(0, 430), //417
 				y: -100,
-				speed: this.checkType(arr[i], this.enemiesSpeed, this.enemiesSpeed/2, this.enemiesSpeed/4, this.enemiesSpeed/8, this.enemiesSpeed/16),
-				type: this.checkType(arr[i], this.sprites.enemiesType1, this.sprites.enemiesType2, this.sprites.enemiesType3, this.sprites.enemiesType4, this.sprites.enemiesType5),
+				speed: this.checkType(arr[i], this.enemiesSpeed, this.enemiesSpeed/2, this.enemiesSpeed/4, //checkType 342
+					this.enemiesSpeed/8, this.enemiesSpeed/16),
+				type: this.checkType(arr[i], this.sprites.enemiesType1, this.sprites.enemiesType2, 
+					this.sprites.enemiesType3, this.sprites.enemiesType4, this.sprites.enemiesType5),
 				sizeX: this.checkType(arr[i], 10, 20, 40, 60, 100),
 				sizeY: this.checkType(arr[i], 20, 40, 80, 120, 200),
 				dy: 0,
@@ -291,10 +301,10 @@ let game = {
 	moveText: function(obj){
 		this.ctx.font = '20px Orbitron';
 		this.ctx.fillStyle = "#fff";
-		if(obj.x < 250 && !this.localSwitch){
+		if(obj.x < 200 && !this.localSwitch){
 			obj.dx += obj.speed;
-			obj.x += obj.dx
-			if(obj.x >= 249){
+			obj.x += obj.dx;
+			if(obj.x >= 199){
 				this.localSwitch = true;
 			}
 		}
@@ -302,7 +312,7 @@ let game = {
 			obj.dx = 0;
 			obj.dx += obj.speed*4;
 			obj.x -= obj.dx;
-			if( obj.x <= 150 && obj.status === true){
+			if( obj.x <= 100 && obj.status === true){
 				obj.x = 0;
 				obj.dx = 0;
 				this.localSwitch = false
@@ -310,21 +320,21 @@ let game = {
 				this.isGameOver = false;
 				this.words = [];
 				this.enemies = [];
-				this.shotArr = [];
+				this.shots = [];
 				this.explosions = [];
 				this.score = 0;
 				this.streakCounter = 0;
 				this.target = '';
 				for(let i in this.rounds){
-					this.rounds[i].isComplete = false
+					this.rounds[i].isCompleted = false;
 				}
-			}else if(obj.x <= 150 && obj.status === false){
+			}else if(obj.x <= 100 && obj.status === false){
 				this.localSwitch = false;
 				this.explosions = [];
 				this.target = '';
 				obj.x = 0;
 				obj.dx = 0;
-				this.createNewRound()
+				this.startNewRound(); //276
 			}
 		}
 	},
@@ -336,7 +346,8 @@ let game = {
 			value3 : el.length < 12?
 			value4 : value5;
 	},
-	shoting: function(){ //обработка нажатия кнопки
+
+	shoting: function(){ 
 		document.addEventListener('keypress', (e)=>{
 			let code = (e.keyCode ? e.keyCode : e.which);
 			if(!this.target){
@@ -354,8 +365,8 @@ let game = {
 						this.words[i] = this.words[i].slice(1);
 						this.target = this.target.slice(1);
 						localStatus = true;
-						this.shotArr.push({x: this.ship.x-5, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[i]});
-						this.shotAudio()
+						this.shots.push({x: this.ship.x-5, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[i]});
+						this.shotAudio(); //472
 						break;
 					}
 				}
@@ -365,10 +376,10 @@ let game = {
 					lockalStatus = false;
 				}
 			}else if(this.target[0] === String.fromCharCode(code) && this.target){
-				this.shotAudio()
+				this.shotAudio(); //472
 				this.target = this.target.slice(1);
 				this.words[this.index] = this.words[this.index].slice(1);
-				this.shotArr.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[this.index]});
+				this.shots.push({x: this.ship.x-2, y: this.ship.y - 30, dx: 0, dy: 0, speed: 0.003, target: this.enemies[this.index]});
 				this.streakCounter += 1;
 				this.streakCounter > 300? 
 					this.score += this.streak.x10 : this.streakCounter > 200?
@@ -376,62 +387,60 @@ let game = {
 					this.score += this.streak.x3  : this.streakCounter > 50?
 					this.score += this.streak.x2  : this.score ++;
 				if(this.words[this.index] === '') {
-					this.shotAudio()
 					this.oldIndex  = this.index;
 					this.enemies[this.oldIndex].speed = 0.005;
 					this.enemies[this.oldIndex].dy = 0;
-					this.explosions.push({x: this.enemies[this.oldIndex].x, y: this.enemies[this.oldIndex].y, width: this.enemies[this.oldIndex].sizeX, height: this.enemies[this.oldIndex].sizeY, stepX: 0, stepY: 0, step: 0});
+					this.explosions.push({x: this.enemies[this.oldIndex].x, y: this.enemies[this.oldIndex].y, 
+						width: this.enemies[this.oldIndex].sizeX, height: this.enemies[this.oldIndex].sizeY, stepX: 0, stepY: 0, step: 0});
 					if( this.index === this.enemies.length - 1){
 						this.words.splice(this.oldIndex,1);	
-						this.boomAudio()
+						this.explosionAudio(); //485
 						setTimeout((e)=>{
 								this.enemies.splice(this.oldIndex,1);
-								
-						},700)
+						},700);
 						if(this.words.length === 0){
-							this.isRoundComplete = true;
+							this.isRoundCompleted = true;
 						}
 					}else{
 						this.words.splice(this.oldIndex,1);
 						this.enemies.splice(this.oldIndex,1);
-						this.boomAudio()
+						this.explosionAudio(); //485
 					}
 				}
 			}else{
-				this.streakCounter = 0
-				this.score - 5 > 0? this.score -= 5 : this.score = 0
+				this.streakCounter = 0;
+				this.score - 5 > 0? this.score -= 5 : this.score = 0;
 			}
 		});
 	},
 
-	random: function (min,max){
+	randoming: function (min,max){
 		return Math.floor(Math.random()*(max - min + 1) + min);
 	},
 
 	createWords: function(round){
 		for ( let i in round){
-			if(!round[i].isComplete){
+			if(!round[i].isCompleted){
 				this.round = i;
-				this.wordsGenerator(round[i]);
+				this.wordsGenerator(round[i]); //431
 				break;
 			}	
 		}
 	},
 
 	wordsGenerator: function(round){
-		let temp = ''
 		for (let i = 0; i < round.types.length; i++){
 			for(let j = 0; j < round.types[i]; j++){
 				if( i === 0){
-					this.words.push(this.wordsType1[this.random(0, this.wordsType1.length-1)]);
+					this.words.push(this.wordsType1[this.randoming(0, this.wordsType1.length-1)]);
 				}else if( i === 1){
-					this.words.push(this.wordsType2[this.random(0, this.wordsType2.length-1)]);
+					this.words.push(this.wordsType2[this.randoming(0, this.wordsType2.length-1)]);
 				}else if( i === 2){
-					this.words.push(this.wordsType3[this.random(0, this.wordsType3.length-1)]);
+					this.words.push(this.wordsType3[this.randoming(0, this.wordsType3.length-1)]);
 				}else if( i === 3){
-					this.words.push(this.wordsType4[this.random(0, this.wordsType4.length-1)]);
+					this.words.push(this.wordsType4[this.randoming(0, this.wordsType4.length-1)]);
 				}else if( i === 4){
-					this.words.push(this.wordsType5[this.random(0, this.wordsType5.length-1)]);
+					this.words.push(this.wordsType5[this.randoming(0, this.wordsType5.length-1)]);
 				}
 			}
 		}
@@ -446,9 +455,9 @@ let game = {
 				y >= this.button.y && y <= this.button.y + this.button.height && !this.isStarted){
 					this.isGameOver = false;
 					this.isStarted = true;
-					this.shoting();
-					this.createNewRound();
-					this.backgroundAudio()		
+					this.shoting(); //350
+					this.startNewRound(); //276
+					this.backgroundAudio(); //492
 			}
 		})
 	},
@@ -456,14 +465,16 @@ let game = {
 	gameOver: function(){
 		for(let i in this.enemies){
 			if(this.enemies[i].y >= this.ship.y){
-				this.explosions.push({x: this.ship.x, y: this.ship.y, width: this.ship.width, height: this.ship.height, stepX: 0, stepY: 0, step: 0})
-				this.boomAudio();
+				this.explosions.push({x: this.ship.x, y: this.ship.y, width: this.ship.width, height: this.ship.height, 
+					stepX: 0, stepY: 0, step: 0})
+				this.explosionAudio();
 				this.audio.background.pause();
 				this.audio.background.currentTime = 0.0;
 				this.isGameOver = true;
 			}
 		}
 	},
+
 	shotAudio: function(){
 		this.audio.shot = new Audio();
 		this.audio.shot.src = '../audio/shot.ogg';
@@ -471,12 +482,13 @@ let game = {
 		this.audio.shot.volume = 0.6;
 	},
 
-	boomAudio: function(){
-		this.audio.boom = new Audio();
-		this.audio.boom.src = '../audio/boom.ogg';
-		this.audio.boom.autoplay = true;
-		this.audio.boom.volume = 0.6;
+	explosionAudio: function(){
+		this.audio.explosion = new Audio();
+		this.audio.explosion.src = '../audio/explosion.ogg';
+		this.audio.explosion.autoplay = true;
+		this.audio.explosion.volume = 0.6;
 	},
+
 	backgroundAudio: function(){
 		this.audio.background = new Audio();
 		this.audio.background.src = '../audio/background.mp3';
@@ -539,7 +551,7 @@ game.roundText = {
 	dx: 0,
 	speed: 0.1,
 	text1: '',
-	text2: '',
+	text2: 'Счет: ',
 	status: false
 };
 
@@ -554,6 +566,6 @@ game.wordsType4 = ["аббиссинцы", "автоматчик", "аккура
 game.wordsType5 = ["агропромышленный", "автоматизировать", "ассимилироваться", "автобиографичный", "антиисторический", "абстрагироваться", "активизироваться", "администрировать", "бесхозяйственный", "богохульствовать", "бездоказательный", "бескомпромиссный", "благожелательный", "безыскусственный", "благоденствовать", "безотносительный", "благодарственный", "бумаготворчество", "вульгаризировать", "вольноотпущенник", "второгодничество", "воздухоплаватель", "вседозволенность", "великовозрастный", "времяпровождение", "восторжествовать", "высокоблагородие", "вольноотпущенный", "гипертрофировать", "грузоподъемность", "гигроскопический", "грузоотправитель", "геологоразведчик", "громкоговоритель", "гальванизировать", "глубокоуважаемый", "глубокомысленный", "декольтированный", "донкихотствовать", "деревообделочный", "дифференциальный", "деклассированный", "довольствоваться", "деревообделочник", "дисциплинировать", "действительность", "доброжелательный", "жизнеобеспечение", "жертвоприношение", "звукопроницаемый", "забальзамировать", "закомпостировать", "засухоустойчивый", "заасфальтировать", "заинтересоваться", "зарегистрировать", "заинтересованный", "законспирировать", "заводоуправление", "инструментальщик", "индивидуальность", "источниковедение", "изобретательство", "искусствоведение", "идентифицировать", "интерпретировать", "интеллектуальный", "катапультировать", "критиканствовать", "коммунистический", "калейдоскопичный", "концентрационный", "каталогизировать", "крестьянствовать", "коммуникабельный", "контрнаступление", "картофелеводство", "лжесвидетельство", "лесопромышленник", "морозоустойчивый", "металлопрокатный", "монополизировать", "материаловедение", "многоступенчатый", "материалистичный", "многострадальный", "малодушествовать", "милитаризировать", "мумифицироваться", "непозволительный", "напрактиковаться", "невразумительный", "неопределенность", "налогоплательщик", "несправедливость", "невостребованный", "ненавистничество", "набезобразничать", "непритязательный", "обороноспособный", "отреставрировать", "откорректировать", "основополагающий", "орнитологический", "общечеловеческий", "охарактеризовать", "переговариваться", "поспособствовать", "программирование", "прочувствованный", "перестреливаться", "предосудительный", "произносительный", "подремонтировать", "престолонаследие", "просветительство", "рационалистичный", "разгильдяйничать", "ремилитаризовать", "распорядительный", "расчувствоваться", "развлекательство", "реконструировать", "разрекламировать", "рассредоточиться", "радиоэлектронный", "семидесятилетний", "сопротивляемость", "скооперироваться", "старообрядчество", "самоопределиться", "сногсшибательный", "семидесятилетние", "совместительство", "сконцентрировать", "специализировать", "тридцатьчетверка", "теплопроводность", "трехкилометровый", "телефонизировать", "трансформировать", "транспортировать", "тракторостроение", "труднопроходимый", "товаропроводящий", "фальшивомонетчик", "фальсифицировать", "хронометрировать", "хлопчатобумажный", "церемониймейстер", "целеустремленный", "целенаправленный", "четырехсотлетний", "человекообразный", "чинопроизводство", "шестидесятилетие", "экспроприировать", "эмпириокритицизм", "эксплуатационник", "электропроводный", "экзальтированный", "электромагнитный", "эволюционировать", "электромагнетизм", "экстраординарный"];
 
 window.addEventListener('load', function(){
-	game.starting();
+	game.start();
 });
 
