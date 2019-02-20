@@ -310,283 +310,32 @@ template {
   -moz-box-sizing: border-box;
        box-sizing: border-box; }
 
-.btn {
-  display: inline-block;
-  background: transparent;
-  color: #000;
-  font-weight: 700;
-  text-decoration: none;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
-  padding: 1vh 2vw;
-  outline: none;
-  border: 2px solid #000;
-  border-radius: 1px;
-  -webkit-transition: 0.2s;
-  -moz-transition: 0.2s;
-  transition: 0.2s;
-  text-transform: uppercase; }
-  .btn:hover {
-    background: rgba(255, 255, 255, 0.2); }
-  .btn:active {
-    background: white; }
-
-.ico {
-  width: 35px;
-  height: 35px;
-  background: #fff;
-  border-radius: 50%;
-  margin: 0;
-  padding: 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-     -moz-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-     -moz-box-align: center;
-      -ms-flex-align: center;
-          align-items: center; }
-  .ico .fa-twitter,
-  .ico .fa-facebook-f,
-  .ico .fa-instagram,
-  .ico .fa-github,
-  .ico .fa-linkedin-in {
-    -webkit-transition: all .7 ease;
-    -moz-transition: all .7 ease;
-    transition: all .7 ease;
-    font-size: 1rem; }
-  .ico:hover {
-    background: rgba(111, 55, 125, 0.8); }
-    .ico:hover .fa-twitter,
-    .ico:hover .fa-facebook-f,
-    .ico:hover .fa-instagram,
-    .ico:hover .fa-github,
-    .ico:hover .fa-linkedin-in {
-      color: #fff; }
-
 html,
 body {
   background: url(../img/page.png) repeat center;
   height: 100%; }
-  html .sait,
-  body .sait {
+  html .spaceship-game_field,
+  body .spaceship-game_field {
+    width: 100%;
+    height: 100%;
     display: -webkit-box;
     display: -webkit-flex;
     display: -moz-box;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    -webkit-flex-direction: column;
-       -moz-box-orient: vertical;
-       -moz-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
-    border: 1px solid #000;
-    width: 100%;
-    height: 100%;
-    max-width: 1366px;
-    min-width: 320px;
-    margin: 0 auto; }
-    html .sait .header,
-    body .sait .header {
-      border: 1px solid #000;
-      height: 20vh;
-      background: url(../img/header.jpg) no-repeat center/cover; }
-      html .sait .header .top-line,
-      body .sait .header .top-line {
-        padding: 20px;
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-box;
-        display: -ms-flexbox;
-        display: flex;
-        -webkit-box-pack: justify;
-        -webkit-justify-content: space-between;
-           -moz-box-pack: justify;
-            -ms-flex-pack: justify;
-                justify-content: space-between;
-        border: 1px dotted #000; }
-        html .sait .header .top-line .logo,
-        body .sait .header .top-line .logo {
-          padding: 0; }
-          html .sait .header .top-line .logo img,
-          body .sait .header .top-line .logo img {
-            width: 80%; }
-        html .sait .header .top-line .user,
-        body .sait .header .top-line .user {
-          padding: 0; }
-    html .sait .main,
-    body .sait .main {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1 0 auto;
-         -moz-box-flex: 1;
-          -ms-flex: 1 0 auto;
-              flex: 1 0 auto;
-      border: 1px solid #000;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-box;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-pack: justify;
-      -webkit-justify-content: space-between;
-         -moz-box-pack: justify;
-          -ms-flex-pack: justify;
-              justify-content: space-between;
-      -webkit-flex-wrap: wrap;
-          -ms-flex-wrap: wrap;
-              flex-wrap: wrap; }
-      html .sait .main .game,
-      body .sait .main .game {
-        margin: 20px;
-        padding: 20px;
-        width: 20vw;
-        height: 30vh;
-        position: relative;
-        -webkit-perspective: 1000px;
-           -moz-perspective: 1000px;
-                perspective: 1000px; }
-        html .sait .main .game .front, html .sait .main .game .back,
-        body .sait .main .game .front,
-        body .sait .main .game .back {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          left: 0;
-          top: 0;
-          display: -webkit-box;
-          display: -webkit-flex;
-          display: -moz-box;
-          display: -ms-flexbox;
-          display: flex;
-          -webkit-box-orient: vertical;
-          -webkit-box-direction: normal;
-          -webkit-flex-direction: column;
-             -moz-box-orient: vertical;
-             -moz-box-direction: normal;
-              -ms-flex-direction: column;
-                  flex-direction: column;
-          -webkit-box-pack: center;
-          -webkit-justify-content: center;
-             -moz-box-pack: center;
-              -ms-flex-pack: center;
-                  justify-content: center;
-          -webkit-box-align: center;
-          -webkit-align-items: center;
-             -moz-box-align: center;
-              -ms-flex-align: center;
-                  align-items: center;
-          -webkit-transition: 1s;
-          -moz-transition: 1s;
-          transition: 1s;
-          -webkit-backface-visibility: hidden;
-             -moz-backface-visibility: hidden;
-                  backface-visibility: hidden;
-          border-radius: 10px;
-          padding: 20px 0;
-          text-align: justify; }
-          html .sait .main .game .front h3, html .sait .main .game .front p, html .sait .main .game .back h3, html .sait .main .game .back p,
-          body .sait .main .game .front h3,
-          body .sait .main .game .front p,
-          body .sait .main .game .back h3,
-          body .sait .main .game .back p {
-            padding: 5px;
-            margin: 0; }
-          html .sait .main .game .front video, html .sait .main .game .back video,
-          body .sait .main .game .front video,
-          body .sait .main .game .back video {
-            margin-bottom: 5px;
-            display: none; }
-        html .sait .main .game .front,
-        body .sait .main .game .front {
-          background-color: #fff; }
-        html .sait .main .game .back,
-        body .sait .main .game .back {
-          background-color: #BDBDBD;
-          -webkit-transform: rotateY(180deg);
-             -moz-transform: rotateY(180deg);
-                  transform: rotateY(180deg); }
-        html .sait .main .game:hover .front,
-        body .sait .main .game:hover .front {
-          -webkit-transform: rotateY(180deg);
-             -moz-transform: rotateY(180deg);
-                  transform: rotateY(180deg); }
-        html .sait .main .game:hover .back,
-        body .sait .main .game:hover .back {
-          -webkit-transform: rotateY(360deg);
-             -moz-transform: rotateY(360deg);
-                  transform: rotateY(360deg); }
-    html .sait .footer,
-    body .sait .footer {
-      -webkit-box-flex: 0;
-      -webkit-flex: 0 0 auto;
-         -moz-box-flex: 0;
-          -ms-flex: 0 0 auto;
-              flex: 0 0 auto;
-      padding: 1vh 20px 1vh 20px;
-      width: 100%; }
-      html .sait .footer .footer-text,
-      body .sait .footer .footer-text {
-        padding: 0;
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-box;
-        display: -ms-flexbox;
-        display: flex;
-        -webkit-box-orient: vertical;
-        -webkit-box-direction: normal;
-        -webkit-flex-direction: column;
-           -moz-box-orient: vertical;
-           -moz-box-direction: normal;
-            -ms-flex-direction: column;
-                flex-direction: column; }
-        html .sait .footer .footer-text .footer-row_one,
-        body .sait .footer .footer-text .footer-row_one {
-          display: -webkit-box;
-          display: -webkit-flex;
-          display: -moz-box;
-          display: -ms-flexbox;
-          display: flex;
-          margin-bottom: 1vh; }
-          html .sait .footer .footer-text .footer-row_one .ico,
-          body .sait .footer .footer-text .footer-row_one .ico {
-            margin-right: 1.5vw;
-            -webkit-transition: all .5s ease;
-            -moz-transition: all .5s ease;
-            transition: all .5s ease; }
-        html .sait .footer .footer-text .footer-row_two,
-        body .sait .footer .footer-text .footer-row_two {
-          display: -webkit-box;
-          display: -webkit-flex;
-          display: -moz-box;
-          display: -ms-flexbox;
-          display: flex;
-          opacity: .2; }
-          html .sait .footer .footer-text .footer-row_two a,
-          body .sait .footer .footer-text .footer-row_two a {
-            text-decoration: none;
-            color: #fff;
-            border-bottom: 0.5px dotted #fff; }
-          html .sait .footer .footer-text .footer-row_two p,
-          body .sait .footer .footer-text .footer-row_two p {
-            font-size: 10px;
-            line-height: 0.5;
-            padding: 3px 7px 3px 0;
-            border-right: 1px solid #fff;
-            margin-right: 1.4vw; }
-            html .sait .footer .footer-text .footer-row_two p:last-child,
-            body .sait .footer .footer-text .footer-row_two p:last-child {
-              border-right: none; }
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+       -moz-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+       -moz-box-align: center;
+        -ms-flex-align: center;
+            align-items: center; }
+    html .spaceship-game_field .spaceship,
+    body .spaceship-game_field .spaceship {
+      box-shadow: 0 0 20px #000; }
 
 .spaceship-game_field {
   width: 100%;
